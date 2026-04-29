@@ -1,20 +1,19 @@
-FROM debian:bullseye-slim
+FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpjproject-dev \
+    wget curl git \
     asterisk \
     asterisk-modules \
     asterisk-core-sounds-en \
     asterisk-core-sounds-ru \
     asterisk-moh-opsound-wav \
-    libasterisk-agi-perl \
-    asterisk-dev \
     tcpdump \
     python3 \
     python3-pip \
-    curl \
-    wget \
     sox \
     libsox-fmt-mp3 \
     net-tools \
