@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     asterisk-core-sounds-en \
     asterisk-core-sounds-ru \
     asterisk-moh-opsound-wav \
+    libasterisk-agi-perl \
+    asterisk-dev \
     tcpdump \
     python3 \
     python3-pip \
