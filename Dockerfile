@@ -34,10 +34,16 @@ COPY scripts/entrypoint.sh   /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Asterisk runs as asterisk user — give access to sound dir
-RUN mkdir -p /var/lib/asterisk/sounds/ivr \
-    && chown -R asterisk:asterisk /var/lib/asterisk/sounds/ivr \
-    && chown -R asterisk:asterisk /var/log/asterisk \
-    && chown -R asterisk:asterisk /var/run/asterisk
+RUN mkdir -p \
+    /var/lib/asterisk/sounds/ivr \
+    /var/log/asterisk \
+    /var/run/asterisk \
+    /var/spool/asterisk \
+    && chown -R asterisk:asterisk \
+    /var/lib/asterisk/sounds/ivr \
+    /var/log/asterisk \
+    /var/run/asterisk \
+    /var/spool/asterisk
 
 EXPOSE 5060/udp 5060/tcp 10000-10100/udp
 
