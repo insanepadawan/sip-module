@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libpjproject2 \        # <-- runtime lib, not -dev
+    libpjproject2 \
     wget curl git \
     asterisk \
     asterisk-modules \
