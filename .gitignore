@@ -1,0 +1,27 @@
+# Docker
+*.env
+.env*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & captures
+*.pcap
+*.log
+var/log/
+
+# Generated audio
+*.wav
+*.mp3
+var/lib/asterisk/sounds/ivr/
+
+# Asterisk recordings
+var/spool/asterisk/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/

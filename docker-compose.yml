@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  asterisk-ivr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: asterisk-ivr
+    # Нужно для tcpdump и SIP NAT
+    network_mode: host
+    # Альтернатива если host нельзя — используй bridge с port mapping ниже:
+    # ports:
+    #   - "5060:5060/udp"
+    #   - "5060:5060/tcp"
+    #   - "10000-10100:10000-10100/udp"
+    cap_add:
+      - NET_ADMIN       # нужно для tcpdump
+      - SYS_PTRACE
+    volumes:
+      - asterisk-logs:/var/log/asterisk
+      - asterisk-sounds:/var/lib/asterisk/sounds/ivr
+      - asterisk-recordings:/var/spool/asterisk
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Chisinau
+
+volumes:
+  asterisk-logs:
+  asterisk-sounds:
+  asterisk-recordings:
