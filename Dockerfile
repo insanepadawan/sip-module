@@ -3,10 +3,11 @@ FROM debian:bullseye-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    asterisk \
+    asterisk-modules \
     asterisk-core-sounds-en \
     asterisk-core-sounds-ru \
     asterisk-moh-opsound-wav \
+    libpjproject-dev \
     tcpdump \
     python3 \
     python3-pip \
