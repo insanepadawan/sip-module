@@ -8,7 +8,6 @@ services:
     container_name: asterisk-ivr
     # Нужно для tcpdump и SIP NAT
     network_mode: host
-    # Альтернатива если host нельзя — используй bridge с port mapping ниже:
     # ports:
     #   - "5060:5060/udp"
     #   - "5060:5060/tcp"
