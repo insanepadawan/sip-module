@@ -7,6 +7,7 @@
 import os
 import sys
 import subprocess
+from gtts import gTTS
 
 SOUNDS_DIR = "/var/lib/asterisk/sounds/ivr"
 
@@ -27,46 +28,71 @@ PHRASES = {
     "invalid_option":   "Неверный выбор. Пожалуйста, попробуйте снова.",
 }
 
+# Полные фразы "Вы нажали X цифру" для каждой цифры 0–9.
+# Файлы: you_pressed_0.ulaw … you_pressed_9.ulaw
+# Можно использовать напрямую в extensions.conf:
+#   exten => _X,n,Playback(ivr/you_pressed_${EXTEN})
+DIGIT_NAMES = {
+    0: "ноль",
+    1: "один",
+    2: "два",
+    3: "три",
+    4: "четыре",
+    5: "пять",
+    6: "шесть",
+    7: "семь",
+    8: "восемь",
+    9: "девять",
+}
+
+DIGIT_PHRASES = {
+    f"you_pressed_{digit}": f"Вы нажали цифру {name}."
+    for digit, name in DIGIT_NAMES.items()
+}
+
+
 def generate(key, text):
     mp3_path = f"/tmp/ivr_{key}.mp3"
     wav_path = f"{SOUNDS_DIR}/{key}.wav"
+    ulaw_path = f"{SOUNDS_DIR}/{key}.ulaw"
 
-    if os.path.exists(wav_path):
-        print(f"  [SKIP] {key}.wav already exists")
+    if os.path.exists(ulaw_path):
+        print(f"[SKIP] {key}")
         return
 
-    try:
-        from gtts import gTTS
-        tts = gTTS(text=text, lang="ru", slow=False)
-        tts.save(mp3_path)
+    tts = gTTS(text=text, lang="ru", slow=False)
+    tts.save(mp3_path)
 
-        # Convert MP3 → WAV 8000Hz mono (Asterisk ulaw-compatible)
-        result = subprocess.run([
-            "sox", mp3_path,
-            "-r", "8000",
-            "-c", "1",
-            "-e", "signed-integer",
-            "-b", "16",
-            wav_path
-        ], capture_output=True, text=True)
+    # 1. WAV (intermediate)
+    subprocess.run([
+        "sox", mp3_path,
+        "-r", "8000",
+        "-c", "1",
+        wav_path
+    ], check=True)
 
-        if result.returncode != 0:
-            print(f"  [ERROR] sox failed for {key}: {result.stderr}")
-            sys.exit(1)
+    # 2. ULAW (IMPORTANT FOR ASTERISK)
+    subprocess.run([
+        "sox", wav_path,
+        "-t", "ul",  # mu-law format
+        "-r", "8000",
+        "-c", "1",
+        ulaw_path
+    ], check=True)
 
-        os.remove(mp3_path)
-        print(f"  [OK] Generated: {key}.wav")
+    os.remove(mp3_path)
 
-    except Exception as e:
-        print(f"  [ERROR] {key}: {e}")
-        sys.exit(1)
+    print(f"[OK] {key}.wav + .ulaw")
 
 
 def main():
     os.makedirs(SOUNDS_DIR, exist_ok=True)
     print(f"Generating IVR sounds in {SOUNDS_DIR} ...")
-    for key, text in PHRASES.items():
+
+    all_phrases = {**PHRASES, **DIGIT_PHRASES}
+    for key, text in all_phrases.items():
         generate(key, text)
+
     print("All sounds ready.")
 
 
