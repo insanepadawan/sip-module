@@ -6,20 +6,32 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: asterisk-ivr
-    network_mode: host        # keep - needed for SIP NAT
-    # ports: removed - ignored with network_mode: host
+    network_mode: host          # eliminates iptables port-range problem
     cap_add:
-      - NET_ADMIN
-      - SYS_PTRACE
+      - NET_ADMIN               # removed SYS_PTRACE
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - asterisk-logs:/var/log/asterisk
       - asterisk-sounds:/var/lib/asterisk/sounds/ivr
       - asterisk-recordings:/var/spool/asterisk
-    restart: always           # was: unless-stopped
+    restart: on-failure:5       # stops crash-looping
+    healthcheck:
+      test: ["CMD", "asterisk", "-rx", "core show version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     deploy:
-          resources:
-            limits:
-              memory: 512m
+      resources:
+        limits:
+          memory: 512m
+          cpus: "1.0"
+        reservations:
+          memory: 128m
+          cpus: "0.25"
     logging:
       driver: "json-file"
       options:
