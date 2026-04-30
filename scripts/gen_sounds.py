@@ -30,8 +30,6 @@ PHRASES = {
 
 # Полные фразы "Вы нажали X цифру" для каждой цифры 0–9.
 # Файлы: you_pressed_0.ulaw … you_pressed_9.ulaw
-# Можно использовать напрямую в extensions.conf:
-#   exten => _X,n,Playback(ivr/you_pressed_${EXTEN})
 DIGIT_NAMES = {
     0: "ноль",
     1: "один",
@@ -71,10 +69,10 @@ def generate(key, text):
         wav_path
     ], check=True)
 
-    # 2. ULAW (IMPORTANT FOR ASTERISK)
+    # 2. ULAW (видимо важно для Asterisk)
     subprocess.run([
         "sox", wav_path,
-        "-t", "ul",  # mu-law format
+        "-t", "ul",
         "-r", "8000",
         "-c", "1",
         ulaw_path
