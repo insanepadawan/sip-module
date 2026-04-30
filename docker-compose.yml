@@ -6,22 +6,42 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: asterisk-ivr
-    # Нужно для tcpdump и SIP NAT
-    network_mode: host
-    ports:
-      - "5060:5060/udp"
-      - "5060:5060/tcp"
-      - "10000-10100:10000-10100/udp"
+    network_mode: host        # keep - needed for SIP NAT
+    # ports: removed - ignored with network_mode: host
     cap_add:
-      - NET_ADMIN       # нужно для tcpdump
+      - NET_ADMIN
       - SYS_PTRACE
     volumes:
       - asterisk-logs:/var/log/asterisk
       - asterisk-sounds:/var/lib/asterisk/sounds/ivr
       - asterisk-recordings:/var/spool/asterisk
-    restart: unless-stopped
+    restart: always           # was: unless-stopped
+    deploy:
+          resources:
+            limits:
+              memory: 512m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     environment:
       - TZ=Europe/Chisinau
+      - SIP_PASSWORD_1001=${SIP_PASSWORD_1001}
+      - SIP_PASSWORD_1002=${SIP_PASSWORD_1002}
+      - SIP_PASSWORD_1003=${SIP_PASSWORD_1003}
+
+  fail2ban:
+    image: crazymax/fail2ban:latest
+    container_name: fail2ban
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - asterisk-logs:/var/log/asterisk:ro
+      - ./fail2ban:/data
+    restart: always
 
 volumes:
   asterisk-logs:

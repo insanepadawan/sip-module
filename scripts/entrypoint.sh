@@ -5,6 +5,10 @@ echo "============================================"
 echo " Asterisk IVR Docker — Startup"
 echo "============================================"
 
+sed -i "s/__PASSWORD_1001__/${SIP_PASSWORD_1001}/g" /etc/asterisk/sip.conf
+sed -i "s/__PASSWORD_1002__/${SIP_PASSWORD_1002}/g" /etc/asterisk/sip.conf
+sed -i "s/__PASSWORD_1003__/${SIP_PASSWORD_1003}/g" /etc/asterisk/sip.conf
+
 # 1. Detect and patch external IP
 echo "[1/6] Detecting external IP..."
 EXTERNAL_IP=$(curl -s --max-time 5 https://api.ipify.org || curl -s --max-time 5 https://ifconfig.me)

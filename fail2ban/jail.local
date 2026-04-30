@@ -1,0 +1,7 @@
+[asterisk]
+enabled  = true
+filter   = asterisk
+logpath  = /var/log/asterisk/full
+maxretry = 5
+findtime = 60
+bantime  = 86400

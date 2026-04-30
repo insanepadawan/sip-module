@@ -1,6 +1,7 @@
 # Docker
 *.env
-.env*
+.env
+*.pcap
 
 # OS
 .DS_Store
