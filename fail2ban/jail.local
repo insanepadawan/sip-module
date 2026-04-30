@@ -1,7 +1,10 @@
 [asterisk]
-enabled  = true
-filter   = asterisk
-logpath  = /var/log/asterisk/full
-maxretry = 5
-findtime = 60
-bantime  = 86400
+enabled   = true
+port      = 5060
+protocol  = udp
+filter    = asterisk
+logpath   = /var/log/asterisk/messages
+maxretry  = 3          # was probably 5-10
+findtime  = 60         # look back 60s
+bantime   = 86400      # ban for 24h, not default 10min
+action    = iptables-allports[name=asterisk, protocol=all]
