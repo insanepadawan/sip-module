@@ -9,7 +9,7 @@ import sys
 import subprocess
 from gtts import gTTS
 
-SOUNDS_DIR = "/var/lib/asterisk/sounds/ivr"
+SOUNDS_DIR = "/usr/share/asterisk/sounds/ivr"
 
 PHRASES = {
     "main_menu": (
