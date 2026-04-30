@@ -5,7 +5,8 @@ echo "============================================"
 echo " Asterisk IVR Docker — Startup"
 echo "============================================"
 
-echo "[1/4] Detecting external IP..."
+# 1. Detect and patch external IP
+echo "[1/6] Detecting external IP..."
 EXTERNAL_IP=$(curl -s --max-time 5 https://api.ipify.org || curl -s --max-time 5 https://ifconfig.me)
 
 if [ -z "${EXTERNAL_IP}" ]; then
@@ -15,15 +16,25 @@ else
     sed -i "s/^externip=.*/externip=${EXTERNAL_IP}/" /etc/asterisk/sip.conf
 fi
 
-# 2. Generate TTS audio files
-echo "[2/5] Generating IVR audio files..."
+# 2. Fix EC2 hostname resolution warning (harmless but noisy)
+echo "[2/6] Patching /etc/hosts for EC2 hostname..."
+HOSTNAME=$(hostname)
+if ! grep -q "${HOSTNAME}" /etc/hosts; then
+    echo "127.0.0.1 ${HOSTNAME}" >> /etc/hosts
+    echo "   Added: 127.0.0.1 ${HOSTNAME}"
+else
+    echo "   Already present, skipping."
+fi
+
+# 3. Generate TTS audio files (beep is generated via sox in gen_sounds.py)
+echo "[3/6] Generating IVR audio files..."
 python3 /usr/local/bin/gen_sounds.py
 
-# Fix ownership after generation (runs as root in container)
-chown -R asterisk:asterisk /var/lib/asterisk/sounds/ivr
+# Fix ownership after generation
+chown -R asterisk:asterisk /usr/share/asterisk/sounds/ivr
 
-# 3. Start tcpdump in background (SIP only, port 5060)
-echo "[3/5] Starting tcpdump (SIP capture → /var/log/asterisk/sip_capture.pcap)..."
+# 4. Start tcpdump in background
+echo "[4/6] Starting tcpdump (SIP capture → /var/log/asterisk/sip_capture.pcap)..."
 IFACE=$(ip route | grep default | awk '{print $5}' | head -1)
 IFACE=${IFACE:-eth0}
 
@@ -35,13 +46,13 @@ tcpdump -i "${IFACE}" \
 TCPDUMP_PID=$!
 echo "   tcpdump PID: ${TCPDUMP_PID} on interface ${IFACE}"
 
-# 4. Set permissions
-echo "[4/5] Fixing permissions..."
+# 5. Set permissions
+echo "[5/6] Fixing permissions..."
 mkdir -p /var/run/asterisk /var/log/asterisk /var/spool/asterisk
 chown -R asterisk:asterisk /var/run/asterisk /var/log/asterisk /var/spool/asterisk
 
-# 5. Launch Asterisk
-echo "[5/5] Starting Asterisk..."
+# 6. Launch Asterisk
+echo "[6/6] Starting Asterisk..."
 echo "   Dial 100 to reach the IVR menu."
 echo "   SIP accounts: 1001, 1002, 1003  (password: secret123)"
 echo "============================================"
