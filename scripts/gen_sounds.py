@@ -9,7 +9,7 @@ import sys
 import subprocess
 from gtts import gTTS
 
-SOUNDS_DIR = "/usr/share/asterisk/sounds/ivr"
+SOUNDS_DIR = "/var/lib/asterisk/sounds/ivr"
 
 PHRASES = {
     "main_menu": (
@@ -30,6 +30,8 @@ PHRASES = {
 
 # Полные фразы "Вы нажали X цифру" для каждой цифры 0–9.
 # Файлы: you_pressed_0.ulaw … you_pressed_9.ulaw
+# Можно использовать напрямую в extensions.conf:
+#   exten => _X,n,Playback(ivr/you_pressed_${EXTEN})
 DIGIT_NAMES = {
     0: "ноль",
     1: "один",
@@ -69,10 +71,10 @@ def generate(key, text):
         wav_path
     ], check=True)
 
-    # 2. ULAW (видимо важно для Asterisk)
+    # 2. ULAW (IMPORTANT FOR ASTERISK)
     subprocess.run([
         "sox", wav_path,
-        "-t", "ul",
+        "-t", "ul",  # mu-law format
         "-r", "8000",
         "-c", "1",
         ulaw_path
@@ -83,9 +85,39 @@ def generate(key, text):
     print(f"[OK] {key}.wav + .ulaw")
 
 
+
+def generate_beep():
+    """Generate a real 1kHz beep tone using sox — no TTS needed."""
+    wav_path  = f"{SOUNDS_DIR}/beep.wav"
+    ulaw_path = f"{SOUNDS_DIR}/beep.ulaw"
+
+    if os.path.exists(ulaw_path):
+        print("[SKIP] beep")
+        return
+
+    # 0.5s sine wave at 1000 Hz, 8kHz mono
+    subprocess.run([
+        "sox", "-n",
+        "-r", "8000", "-c", "1",
+        wav_path,
+        "synth", "0.5", "sine", "1000",
+        "vol", "0.7"
+    ], check=True)
+
+    subprocess.run([
+        "sox", wav_path,
+        "-t", "ul",
+        "-r", "8000", "-c", "1",
+        ulaw_path
+    ], check=True)
+
+    print("[OK] beep.wav + .ulaw")
+
 def main():
     os.makedirs(SOUNDS_DIR, exist_ok=True)
     print(f"Generating IVR sounds in {SOUNDS_DIR} ...")
+
+    generate_beep()
 
     all_phrases = {**PHRASES, **DIGIT_PHRASES}
     for key, text in all_phrases.items():
