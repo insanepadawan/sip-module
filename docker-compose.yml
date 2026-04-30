@@ -6,7 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: asterisk-ivr
-    network_mode: host          # eliminates iptables port-range problem
+    ports:
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+      - "10000-10100:10000-10100/udp"
     cap_add:
       - NET_ADMIN               # removed SYS_PTRACE
     ulimits:
